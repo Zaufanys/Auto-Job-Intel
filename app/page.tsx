@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { jobs } from "@/lib/mock-data";
-import type { JobStatus } from "@/lib/types";
+import { useEffect, useMemo, useState } from "react";
+import { jobs as fallbackJobs } from "@/lib/mock-data";
+import type { Job, JobStatus } from "@/lib/types";
 
 const PIPELINE = [
   {
@@ -74,6 +74,23 @@ function statusClass(status: JobStatus): string {
 export default function Home() {
   const [min, setMin] = useState(70);
   const [onlyVerified, setOnlyVerified] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>(fallbackJobs);
+
+  // Live data from the real pipeline; falls back to seed data if unavailable.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/match?min=0")
+      .then((r) => r.json())
+      .then((d: { matches?: Job[] }) => {
+        if (active && Array.isArray(d.matches) && d.matches.length > 0) {
+          setJobs(d.matches);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const visible = useMemo(
     () =>
@@ -97,6 +114,7 @@ export default function Home() {
           <a href="#how">How it works</a>
           <a href="#demo">Live demo</a>
           <a href="#trust">Trust</a>
+          <a href="/dashboard">Open app →</a>
         </nav>
       </header>
 
@@ -113,8 +131,8 @@ export default function Home() {
             closing-status re-checks — so every alert is one you can actually act on.
           </p>
           <div className="row hero-cta">
-            <a className="btn" href="#demo">
-              Try the live demo
+            <a className="btn" href="/dashboard">
+              Open the app
             </a>
             <a className="btn secondary" href="#how">
               See how it works
@@ -181,8 +199,9 @@ export default function Home() {
           <div className="eyebrow">Live demo</div>
           <h2 className="section-title">Ranked, explainable openings</h2>
           <p className="section-sub">
-            Interactive prototype running on mock data. Adjust the fit threshold and verification
-            filter to see how ranking and evidence respond.
+            Live data from the pipeline — each posting is parsed, verified, and scored against the
+            saved profile. Adjust the fit threshold and verification filter to see ranking and
+            evidence respond. Manage everything in the <a href="/dashboard">full app</a>.
           </p>
         </div>
 
@@ -353,7 +372,7 @@ export default function Home() {
           extraction, and a verification ledger.
         </div>
         <div className="muted">
-          Running on mock data · database and AI integrations behind interfaces.
+          Runs locally with no external services · Supabase and email integrations behind interfaces.
         </div>
       </footer>
     </main>

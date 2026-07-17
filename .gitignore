@@ -9,3 +9,6 @@ coverage
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Local data store (file-backed repository)
+.data/

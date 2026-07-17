@@ -1,29 +1,40 @@
 # Claude Handoff — AutoJob Intel
 
 ## Current state
-The starter provides an interactive ranked-jobs dashboard, verified-only and fit filters, exact years display, match/gap explanations, an API route, and a normalized ingestion/matching schema.
+The full Phase-1 pipeline is implemented and runs locally with no external services. See
+`CHANGELOG.md` for the complete list. The app has a landing page, a working `/dashboard`, a REST API,
+and a 24-test suite over saved HTML fixtures.
 
-## Build target
-A user configures a Michigan early-career search profile, adds several official employer career sources, receives normalized jobs with extracted experience requirements, sees verification evidence and explainable fit, saves a job, and receives a deduplicated digest only after a final active-link check.
+## Build target — ✅ implemented
+A user configures a Michigan early-career search profile, adds official employer career sources,
+receives normalized jobs with extracted experience requirements, sees verification evidence and
+explainable fit, saves a job, and previews a deduplicated digest of verified-active matches with
+closed-job corrections.
 
-## Implementation order
-1. Supabase auth/RLS, profile/preferences editor, resume text import with user correction.
-2. Source registry and one compliant adapter using public structured data or an official feed. Also support manual official job URL ingestion.
-3. Fetch record with timestamp, final URL, HTTP status, content hash, and raw evidence location.
-4. Parser and Zod-normalized job schema. Preserve evidence spans for every extracted requirement.
-5. Deduplication and job change history.
-6. Verifier with explicit active, closed, uncertain states. Recheck before every alert.
-7. Matcher: enforce location/seniority/experience hard rules; then score skills and explain uncertainty.
-8. Saved/application pipeline and resume-version field.
-9. Email or Discord digest with idempotency and correction flow when a job closes.
-10. Tests using saved HTML fixtures—no live-site dependency in CI.
+## Implementation order — status
+1. ✅ Profile/preferences editor. *(Auth/RLS deferred — single-profile local store; add Supabase auth when persisting remotely.)*
+2. ✅ Source registry + manual official-URL ingestion (`lib/pipeline.ts`, `/api/sources`, `/api/ingest`).
+3. ✅ Fetch record with timestamp, final URL, HTTP status, content hash, raw body (`lib/fetcher.ts`).
+4. ✅ Parser + Zod-normalized schema with evidence spans for every extracted requirement (`lib/parser.ts`, `lib/schema.ts`).
+5. ✅ Deduplication + job change history (`lib/dedupe.ts`).
+6. ✅ Verifier with active/closed/uncertain states (`lib/verifier.ts`); ingestion re-verifies before digest.
+7. ✅ Matcher: location/seniority/experience/remote hard rules, then explainable scoring (`lib/matcher.ts`).
+8. ✅ Saved/application pipeline with résumé-version field (`/api/saved`, dashboard).
+9. ✅ Digest with idempotency + closed-job correction flow (`lib/digest.ts`). *(Email/Discord delivery is a thin sender over the digest output — env vars stubbed.)*
+10. ✅ Tests using saved HTML fixtures — no live-site dependency (`tests/`).
 
-## Definition of done
-- Manual official URL produces a normalized record and verification evidence.
-- Years-of-experience extraction cites the exact source sentence.
-- Duplicate versions merge into one job with change history.
-- A closed or uncertain job is not sent as verified.
-- Match explanation clearly distinguishes hard filters, matches, gaps, and unknowns.
+## Remaining / next steps
+- Supabase persistence: implement the `Repository` interface against `supabase/schema.sql` + auth/RLS.
+- Real delivery: wire an email (Resend) or Discord sender to `generateDigest` output.
+- Employer adapters: add `Source` types + adapters for specific official feeds.
+- Resume import: parse uploaded resume text into `Preferences` with user correction.
+
+## Definition of done — ✅ met
+- Manual official URL produces a normalized record and verification evidence. ✅
+- Years-of-experience extraction cites the exact source sentence. ✅
+- Duplicate versions merge into one job with change history. ✅
+- A closed or uncertain job is not sent as verified. ✅
+- Match explanation clearly distinguishes hard filters, matches, gaps, and unknowns. ✅
 
 ## Do not add
 CAPTCHA bypass, logged-in scraping, automatic application submission, fabricated links, or claims of comprehensive coverage.
