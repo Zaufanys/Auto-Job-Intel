@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🚗 AutoJob Intel
+<img src="./docs/assets/banner.svg" alt="AutoJob Intel — job search built on trust, not volume" width="100%" />
 
 ### Verified job intelligence with explainable matching
-
-**Official-link job tracking for automotive, embedded, cybersecurity, and early-career roles — built on trust, not volume.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev/)
@@ -31,7 +29,11 @@ adapters behind interfaces (see [Deployment](#-deployment--optional-integrations
 > **The build target:** a candidate configures a Michigan early-career search profile, adds official
 > employer career sources, receives normalized jobs with extracted experience requirements, sees
 > verification evidence and explainable fit, saves a job, and receives a deduplicated digest — only
-> after a final active-link check. ✅ **Implemented.**
+> after a final active-link check. ✅ **Implemented — screenshots below are the real, running app.**
+
+<p align="center">
+  <img src="./docs/assets/01-hero.png" alt="AutoJob Intel landing page hero" width="100%" />
+</p>
 
 ---
 
@@ -78,6 +80,35 @@ flowchart LR
 | **Digest** | `lib/digest.ts` | Idempotent alerts for verified matches; one-time corrections when a job closes. |
 
 `lib/pipeline.ts` orchestrates them over a `Repository` (`lib/repository.ts`).
+
+<p align="center">
+  <img src="./docs/assets/02-pipeline.png" alt="The five-step pipeline as shown on the landing page" width="100%" />
+</p>
+
+---
+
+## 🖼️ Screenshots
+
+**Live demo — ranked, explainable openings** *(landing page)*
+<br/>Fit score, verification tag, matched/gap chips, and the exact cited sentence behind every requirement.
+
+<p align="center">
+  <img src="./docs/assets/03-demo.png" alt="Live demo section with ranked openings, fit scores, and cited evidence" width="100%" />
+</p>
+
+**Dashboard — search profile & ingestion** *(`/dashboard`)*
+<br/>Edit locations, skills, role families, and stretch tolerance on the left; paste an official URL (or its HTML) to ingest on the right.
+
+<p align="center">
+  <img src="./docs/assets/04-dashboard-profile-ingest.png" alt="Dashboard profile editor and URL ingestion form" width="100%" />
+</p>
+
+**Dashboard — ranked matches**
+<br/>Every match shows its fit score, verification status, matched/missing skills, and the source sentence it was extracted from.
+
+<p align="center">
+  <img src="./docs/assets/05-dashboard-matches.png" alt="Dashboard ranked matches with evidence quotes" width="100%" />
+</p>
 
 ---
 
@@ -157,7 +188,7 @@ autojob-intel/
 ├── tests/                  # parser · matcher · verifier · pipeline (node:test)
 ├── scripts/seed.ts         # `npm run seed`
 ├── supabase/schema.sql     # Optional Postgres schema
-└── docs/                   # PRD · architecture · roadmap · security
+└── docs/                   # PRD · architecture · roadmap · security · assets
 ```
 
 ---
@@ -169,6 +200,17 @@ The domain is defined once as Zod schemas in [`lib/schema.ts`](./lib/schema.ts) 
 `EvidenceSpan`s) · `Verification` · `ChangeEntry` · `MatchResult` · `SavedJob` · `Notification`.
 The equivalent Postgres tables live in [`supabase/schema.sql`](./supabase/schema.sql). Job records are
 stored independently of matches, so one verified posting can be scored against many profiles.
+
+```mermaid
+erDiagram
+    SOURCE ||--o{ NORMALIZED_JOB : yields
+    NORMALIZED_JOB ||--o{ VERIFICATION : "re-checked by"
+    NORMALIZED_JOB ||--o{ CHANGE_ENTRY : "history"
+    NORMALIZED_JOB ||--o{ MATCH_RESULT : "scored per profile"
+    PREFERENCES ||--o{ MATCH_RESULT : produces
+    NORMALIZED_JOB ||--o{ SAVED_JOB : "tracked as"
+    NORMALIZED_JOB ||--o{ NOTIFICATION : "alerted via"
+```
 
 ---
 

@@ -1,5 +1,31 @@
 # Architecture
 
+```mermaid
+sequenceDiagram
+    participant U as Candidate
+    participant API as /api/ingest
+    participant F as fetcher.ts
+    participant P as parser.ts
+    participant D as dedupe.ts
+    participant V as verifier.ts
+    participant R as Repository
+    participant M as matcher.ts
+
+    U->>API: POST { url, html? }
+    API->>F: retrieve (or use pasted HTML)
+    F-->>API: RawFetch (status, finalUrl, contentHash, body)
+    API->>P: parseJob(raw, source)
+    P-->>API: ParsedPosting (+ evidence spans)
+    API->>D: findDuplicate(candidate, existing jobs)
+    D-->>API: existing job | none
+    API->>V: verify(raw, jobId)
+    V-->>API: Verification (verified/uncertain/closed)
+    API->>R: putJob + addVerification + addChanges
+    API->>M: matchJob(job, preferences)
+    M-->>API: MatchResult (score, hard filters, evidence)
+    API-->>U: normalized job + verification + match
+```
+
 - Source adapters per employer/platform; respect robots, terms, rate limits, and public access.
 - Fetcher saves raw evidence hash and retrieval metadata.
 - Parser normalizes job records and extracts requirements with evidence spans.
